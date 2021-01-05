@@ -54,12 +54,12 @@ let tipo;
 let producto;
 let mes;
 let ciclo;
+let año="2021"; //linea a cambiar segun el año en el que nos encontremos
 
 function entrada(callback){
   readline.question(`Nombre de tabla 1: `, name => {
     nombre1=name;
     console.log(nombre1);
-    // readline.close()
     return callback(null,"Final entrada");
   });
 }
@@ -133,7 +133,14 @@ function entrada7(callback){
 function create(callback){
     let cont_ok=0;
     let cont_error=0;
-    let direc=Path.join(__dirname+'/listas/'+producto+'/'+tipo+'/'+mes+'');
+    let direc;
+    if(producto==="COPPEL"){
+        direc=Path.join(__dirname+'/listas/ENTREGABLES/REPORTES-'+año+'/'+producto+'/'+tipo+'/'+mes+'');
+    }
+    else{
+        direc=Path.join(__dirname+'/listas/'+producto+'/A'+año+'/'+tipo+'/'+mes+'');
+    }
+    
     try {
         fs.statSync(direc);
         console.log('file or directory exists');
@@ -295,13 +302,13 @@ function create(callback){
                                     // console.log(data);
                                     var newWS = xlsx.utils.json_to_sheet(data);
                                     xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                    xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                    xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
                                 }
                                 if(ciclo===2){
                                     console.log("se abre archivo y luego se agregan datos");
                                     let data_part=[];
-
-                                    readXlsxFile('./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx').then((rows) => {
+                                    // direc=Path.join(__dirname+'/listas/'+producto+'/A'+año+'/'+tipo+'/'+mes+'');
+                                    readXlsxFile(''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx').then((rows) => {
                     
                                         // console.log(rows);
                                         let encabezados=rows[0];
@@ -403,7 +410,7 @@ function create(callback){
                                         // console.log(data);
                                         var newWS = xlsx.utils.json_to_sheet(data);
                                         xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                        xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                        xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
 
                                     })
                                 }
@@ -478,7 +485,19 @@ function create(callback){
                 var sql2="SELECT distinct mo.REMESA,(er.email),mo.NO_CERTIFICADO,mo.FECHA_INICIO,mo.FECHA_FIN,er.fecha_estatus,er.estatus, mo.NOMBRE FROM cardif."+nombre1+" mo, cardif."+nombre3+" er where mo.correo=er.email group by er.email";
 
                 var sql3="SELECT count(mo.estatus) repeticiones, mog.REMESA,mo.email,mog.NO_CERTIFICADO, mog.FECHA_INICIO,mog.FECHA_FIN,mo.fecha_estatus,mo.estatus, mog.NOMBRE FROM cardif."+nombre1+" mog, cardif."+nombre2+" mo where mog.correo=mo.email and mo.estatus='click' group by mog.NO_CERTIFICADO"
+                
+            }
 
+            if(producto==="BANORTE_ATM"){
+               
+                //USAR APARTIR DE LA REMESA DE TMK-INBOUND
+                var sql="SELECT count(mo.estatus) repeticiones,mog.REMESA,mo.email,mog.NO_CERTIFICADO,mog.FECHA_INICIO,mog.FECHA_FIN,mo.fecha_estatus,mo.estatus, mog.NOMBRE FROM cardif."+nombre1+" mog, cardif."+nombre2+" mo where mog.correo=mo.email and mo.estatus='open' group by mog.NO_CERTIFICADO";
+
+                var sql1="SELECT mo2.REMESA,mo1.email, mo2.NO_CERTIFICADO,mo2.FECHA_INICIO,mo2.FECHA_FIN,mo1.fecha_estatus,mo1.estatus, mo2.NOMBRE from cardif."+nombre2+" mo1,cardif."+nombre1+" mo2 where mo1.email=mo2.correo and mo1.email not in(SELECT mo.email FROM cardif."+nombre1+" mog, cardif."+nombre2+" mo where mog.correo=mo.email and mo.estatus='open' group by mog.NO_CERTIFICADO) and mo1.estatus='delivered' group by mo2.NO_CERTIFICADO";
+
+                var sql2="SELECT distinct mo.REMESA,(er.email),mo.NO_CERTIFICADO,mo.FECHA_INICIO,mo.FECHA_FIN,er.fecha_estatus,er.estatus, mo.NOMBRE FROM cardif."+nombre1+" mo, cardif."+nombre3+" er where mo.correo=er.email group by er.email";
+
+                var sql3="SELECT count(mo.estatus) repeticiones, mog.REMESA,mo.email,mog.NO_CERTIFICADO, mog.FECHA_INICIO,mog.FECHA_FIN,mo.fecha_estatus,mo.estatus, mog.NOMBRE FROM cardif."+nombre1+" mog, cardif."+nombre2+" mo where mog.correo=mo.email and mo.estatus='click' group by mog.NO_CERTIFICADO"
                 
             }
               con.query(sql, function (err, results) {
@@ -519,13 +538,13 @@ function create(callback){
                                             // console.log(result);
                                             dat.FECHA=""+fecha;
                                             dat.PRODUCTO=""+producto;
-                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                             dat.EMAIL=result.email;
                                             result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                             // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                             result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                             result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                             dat.FECHA_ESTATUS=result.fecha_estatus;
                                             dat.ESTATUS=result.estatus;
                                             dat.REPETICIONES=result.repeticiones;
@@ -541,13 +560,13 @@ function create(callback){
                                             // console.log(result);
                                             dat.FECHA=""+fecha;
                                             dat.PRODUCTO=""+producto;
-                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                             dat.EMAIL=result.email;
                                             result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                             // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                             result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                             result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                            producto==="COPPEL" || producto==="BANORTE_TMK" ||  producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                             dat.FECHA_ESTATUS=result.fecha_estatus;
                                             dat.ESTATUS=result.estatus;
                                             dat.REPETICIONES="";
@@ -563,13 +582,13 @@ function create(callback){
                                             // console.log(result);
                                             dat.FECHA=""+fecha;
                                             dat.PRODUCTO=""+producto;
-                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                             dat.EMAIL=result.email;
                                             result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                             // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                             result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                             result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                             dat.FECHA_ESTATUS=result.fecha_estatus;
                                             dat.ESTATUS=result.estatus;
                                             dat.REPETICIONES="";
@@ -584,13 +603,13 @@ function create(callback){
                                             let dat={};
                                             dat.FECHA=""+fecha;
                                             dat.PRODUCTO=""+producto;
-                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                            producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                             dat.EMAIL=result.email;
                                             result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                             // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                             result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                             result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                            producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                             dat.FECHA_ESTATUS=result.fecha_estatus;
                                             dat.ESTATUS=result.estatus;
                                             dat.REPETICIONES=result.repeticiones;
@@ -603,13 +622,13 @@ function create(callback){
                                     // console.log(data);
                                     var newWS = xlsx.utils.json_to_sheet(data);
                                     xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                    xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-CARATULA-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                    xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
                                 }
                                 if(ciclo===2){
                                     console.log("se abre archivo y luego se agregan datos");
                                     let data_part=[];
 
-                                    readXlsxFile('./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-CARATULA-'+mes+'.xlsx').then((rows) => {
+                                    readXlsxFile(''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx').then((rows) => {
                     
                                         // console.log(rows);
                                         let encabezados=rows[0];
@@ -639,13 +658,13 @@ function create(callback){
                                                     // console.log(result);
                                                     dat.FECHA=""+fecha;
                                                     dat.PRODUCTO=""+producto;
-                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                                     dat.EMAIL=result.email;
                                                     result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                                     // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                                     result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                                     result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                                     dat.FECHA_ESTATUS=result.fecha_estatus;
                                                     dat.ESTATUS=result.estatus;
                                                     dat.REPETICIONES=result.repeticiones;
@@ -661,13 +680,13 @@ function create(callback){
                                                     // console.log(result);
                                                     dat.FECHA=""+fecha;
                                                     dat.PRODUCTO=""+producto;
-                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                                     dat.EMAIL=result.email;
                                                     result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                                     // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                                     result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                                     result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                                     dat.FECHA_ESTATUS=result.fecha_estatus;
                                                     dat.ESTATUS=result.estatus;
                                                     dat.REPETICIONES="";
@@ -683,13 +702,13 @@ function create(callback){
                                                     // console.log(result);
                                                     dat.FECHA=""+fecha;
                                                     dat.PRODUCTO=""+producto;
-                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                                     dat.EMAIL=result.email;
                                                     result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                                     // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                                     result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                                     result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                                     dat.FECHA_ESTATUS=result.fecha_estatus;
                                                     dat.ESTATUS=result.estatus;
                                                     dat.REPETICIONES="";
@@ -704,13 +723,13 @@ function create(callback){
                                                     let dat={};
                                                     dat.FECHA=""+fecha;
                                                     dat.PRODUCTO=""+producto;
-                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
+                                                    producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="PLENITUD" || producto==="BANORTE_ATM"?dat.REMESA=result.REMESA:dat.REMESA=result.FOLIO;
                                                     dat.EMAIL=result.email;
                                                     result.AP_PATERNO!==undefined?dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO: dat.NOMBRE=result.NOMBRE;
                                                     // dat.NOMBRE=result.NOMBRE+" "+result.AP_PATERNO!==undefined?result.AP_PATERNO:"";
                                                     result.FECHA_INICIO!==undefined?dat.FECHA_INICIO=result.FECHA_INICIO: dat.FECHA_INICIO="";
                                                     result.FECHA_FIN!==undefined?dat.FECHA_FIN=result.FECHA_FIN:dat.FECHA_FIN="";
-                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
+                                                    producto==="COPPEL" || producto==="BANORTE_TMK" || producto==="BANORTE_TMK_INB" || producto==="BANORTE_ATM"?dat.POLIZA=result.NO_CERTIFICADO:producto==="PLENITUD"?dat.POLIZA=result.POLIZA: dat.POLIZA=result.ID;
                                                     dat.FECHA_ESTATUS=result.fecha_estatus;
                                                     dat.ESTATUS=result.estatus;
                                                     dat.REPETICIONES=result.repeticiones;
@@ -722,7 +741,7 @@ function create(callback){
                                         // console.log(data);
                                         var newWS = xlsx.utils.json_to_sheet(data);
                                         xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                        xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-CARATULA-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                        xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
 
                                     })
                                 }
@@ -849,13 +868,13 @@ function create(callback){
                                   // console.log(data);
                                   var newWS = xlsx.utils.json_to_sheet(data);
                                   xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                  xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                  xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
                               }
                               if(ciclo===2){
                                   console.log("se abre archivo y luego se agregan datos");
                                   let data_part=[];
 
-                                  readXlsxFile('./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx').then((rows) => {
+                                  readXlsxFile(''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx').then((rows) => {
                   
                                       // console.log(rows);
                                       let encabezados=rows[0];
@@ -945,7 +964,7 @@ function create(callback){
                                       // console.log(data);
                                       var newWS = xlsx.utils.json_to_sheet(data);
                                       xlsx.utils.book_append_sheet(newWB,newWS,"hoja1")//workbook name as param
-                                      xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                                      xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
 
                                   })
                               }

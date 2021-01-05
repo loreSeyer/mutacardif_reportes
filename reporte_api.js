@@ -5,17 +5,11 @@ const Path          = require('path');
 const fs            = require('graceful-fs');
 const moment            = require('moment');
 const async          = require('async');
+const xlsx = require("xlsx");
 const readline = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
 })
-
-var con = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "SEyer1428**",
-  database: "cardif"
-});
 
 // let name="coppel1_agosto2020";
 
@@ -32,6 +26,10 @@ async.series([
     function(callback) {
         entrada4(callback);
     },
+
+    function(callback) {
+        entrada5(callback);
+    },
     function(callback) {
         create(callback);
     }
@@ -41,6 +39,7 @@ let nombre;
 let producto;
 let mes;
 let parte;
+let tipo;
 let año="2021";
 
 function entrada(callback){
@@ -78,42 +77,58 @@ function entrada4(callback){
     readline.question(`parte: `, part => {
       parte=part;
       console.log(parte);
+      return callback(null,"Final entrada");
+    })
+  }
+
+  function entrada5(callback){
+    readline.question(`tipo: `, tip => {
+      tipo=tip;
+      console.log(tipo);
       readline.close()
       return callback(null,"Final entrada");
     })
   }
 
-
-
-
 let pdfs=[];
 
 function create(callback){
 
-    let direc;
-    direc=Path.join(__dirname+'/bases/A'+año+'/'+mes+'/PARTE-'+parte+'/'+producto+'/'+nombre+'.xlsx');
+    let content=[];
+    fs.readFile('./bases/A'+año+'/'+mes+'/PARTE-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.json', 'utf-8', function (err, fileContents) { 
+        if (err) throw err; 
+        // console.log(JSON.parse(fileContents)); 
 
-    con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-      //  
-          var sql = "CREATE TABLE "+nombre+" (campa VARCHAR(255), email VARCHAR(255), fecha_envio varchar(255), estatus varchar(255) ,fecha_estatus varchar(255), detalle varchar(500))";
-          con.query(sql, function (err, result) {
-              if (err) throw err;
-              console.log("Table "+nombre+" created");
+        let direc=Path.join(__dirname+'/bases/A'+año+'/'+mes+'/PARTE-'+parte+'/'+producto+'/'+tipo+'');
+            try {
+                fs.statSync(direc);
+                console.log('file or directory exists');
+            }
+            catch (err) {
+            if (err.code === 'ENOENT') {
+                
+                fs.mkdirSync(direc);
+            }
+        }
 
-                readXlsxFile(''+direc).then((rows) => {
-                    // console.log(rows);
+        if(producto==="COPPEL"){
+            let data= JSON.parse(fileContents);
+            for (const item of data) {
+                let dat={};
+                dat.ID=item._id;
+                dat.CORREO=item.email;
+                dat.FECHA=item.send_date;
+                content.push(dat);  
+            }
+            console.log(content);
+        }
 
-                    var sql1 = "INSERT INTO "+nombre+" (campa, email, fecha_envio , estatus, fecha_estatus, detalle) VALUES ?";
-                    con.query(sql1, [rows], function(err) {
-                        if (err) throw err;
-                        console.log("Information inserted!");
-                        con.end();
-                    });
-                })
+        var newWB = xlsx.utils.book_new();
+        var newWS = xlsx.utils.json_to_sheet(content);
+        xlsx.utils.book_append_sheet(newWB,newWS,"SMS")//workbook name as param
+        xlsx.writeFile(newWB,''+direc+'/coppel'+parte+'_'+mes+'_api.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+    }); 
 
-          });
-      });
+    
 
 }

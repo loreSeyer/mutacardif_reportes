@@ -42,6 +42,7 @@ let tipo;
 let producto;
 let mes;
 let ciclo;
+let año="2021";
 
 
 function entrada4(callback){
@@ -83,7 +84,7 @@ function create(callback){
     let cont_error=0;
     let data=[];
     let data1=[];
-    let direc=Path.join(__dirname+'/listas/GENERAL/'+tipo+'/'+mes+'');
+    let direc=Path.join(__dirname+'/listas/ENTREGABLES/REPORTES-'+año+'/GENERAL/'+tipo+'/'+mes+'');
     try {
         fs.statSync(direc);
         console.log('file or directory exists');
@@ -100,12 +101,13 @@ function create(callback){
     
     let url;
     // console.log("se abre archivo y luego se agregan datos");
-    if(tipo==="ACT"){
-        url='./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx';
-    }
-    if(tipo==="POLIZA"){
-        url='./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-CARATULA-'+mes+'.xlsx'
-    }
+    // if(tipo==="ACT"){
+        
+    url='./listas/'+producto+'/A'+año+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-'+tipo+'-'+producto+'-'+mes+'.xlsx';
+    // }
+    // if(tipo==="POLIZA"){
+    //     url='./listas/'+producto+'/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-CARATULA-'+mes+'.xlsx'
+    // }
 
     var newWB = xlsx.utils.book_new()
     if(ciclo===1){
@@ -145,8 +147,9 @@ function create(callback){
     else{
         console.log("se abre archivo y luego se agregan datos 2");
     
-
-        readXlsxFile('./listas/GENERAL/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx').then((rows) => {
+        
+        // readXlsxFile('./listas/GENERAL/'+tipo+'/'+mes+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx').then((rows) => {
+            readXlsxFile(''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx').then((rows) => {
     
             let encabezados=rows[0];
             for (const row of rows) {
@@ -202,7 +205,7 @@ function create(callback){
                 
                 var newWS = xlsx.utils.json_to_sheet(data);
                 xlsx.utils.book_append_sheet(newWB,newWS,"MAIL_"+tipo)//workbook name as param
-                xlsx.writeFile(newWB,''+direc+'/00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
+                xlsx.writeFile(newWB,''+direc+'//00MUTA-REPORTE-MAIL-GENERAL-'+mes+'.xlsx',{Props:{Author:"WESEND"},bookType:'xlsx',bookSST:true});
         
             })
     

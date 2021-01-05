@@ -54,6 +54,7 @@ let mes;
 let ciclo;
 let subp="";
 let productof;
+let año="2021" //linea que cambia según el año
 
 function entrada(callback){
   readline.question(`Nombre de tabla 1: `, name => {
@@ -145,7 +146,8 @@ function entrada7(callback){
 function create(callback){
     let cont_ok=0;
     let cont_error=0;
-    let direc=Path.join(__dirname+'/listas/'+tipo+'/'+producto+'/'+mes+'');
+    // let direc=Path.join(__dirname+'/listas/'+tipo+'/'+producto+'/'+mes+'');
+    let direc=Path.join(__dirname+'/listas/ENTREGABLES/REPORTES-'+año+'/'+tipo+'/'+producto+'/'+mes+'');
     try {
         fs.statSync(direc);
         console.log('file or directory exists');

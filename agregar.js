@@ -45,6 +45,7 @@ let producto;
 let mes;
 let parte;
 let tipo;
+let año="2021";
 
 function entrada(callback){
   readline.question(`Nombre de base: `, name => {
@@ -101,6 +102,9 @@ function entrada5(callback){
 
 function create(callback){
 
+    let direc;
+    direc=Path.join(__dirname+'/bases/A'+año+'/'+mes+'/PARTE-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx');
+
     con.connect(function(err) {
         if (err) throw err;
         console.log("Connected!");
@@ -112,7 +116,8 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                  // './bases/A'+año+'/'+mes+'-'+parte+'/'+producto+'/'+nombre+'.xlsx'
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA, POLIZA , NOMBRETIT, APPATERNO, PLAN, CODIGO, CONTROL) VALUES ?";
@@ -132,7 +137,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA, POLIZA , NOMBRETIT, APPATERNO, PLAN, CODIGO) VALUES ?";
@@ -153,7 +158,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, FOLIO, ID , AP_PATERNO, NOMBRE, FECHA_INICIO, FECHA_FIN, CODIGO, ARCHIVO) VALUES ?";
@@ -173,7 +178,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA, POLIZA , AP_PATERNO, NOMBRE, FECHA_INICIO, FECHA_FIN, FOLIO, ARCHIVO) VALUES ?";
@@ -192,7 +197,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, FOLIO, NOMBRE, AP_PATERNO, NO_CERTIFICADO, FECHA_INICIO, FECHA_FIN, ARCHIVO) VALUES ?";
@@ -213,7 +218,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA,NO_CERTIFICADO,NO_POLIZA, NOMBRE,FECHA_INICIO,FECHA_FIN) VALUES ?";
@@ -236,11 +241,34 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         // var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA,NO_CERTIFICADO,NO_POLIZA, NOMBRE) VALUES ?";
                         var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA,NO_CERTIFICADO,NO_POLIZA, NOMBRE, FECHA_INICIO, FECHA_FIN) VALUES ?";
+                        con.query(sql1, [rows], function(err) {
+                            if (err) throw err;
+                            console.log("Information inserted!");
+                            con.end();
+                        });
+                    })
+    
+              });
+            }
+
+            if(producto==="BANORTE_ATM"){
+              // var sql = "CREATE TABLE "+nombre+" (CORREO VARCHAR(255), REMESA VARCHAR(255),NO_CERTIFICADO varchar(255), NO_POLIZA varchar(255), NOMBRE varchar(255))";
+              var sql = "CREATE TABLE "+nombre+" (CORREO VARCHAR(255), REMESA VARCHAR(255),NO_CERTIFICADO varchar(255),NOMBRE varchar(255), FECHA_INICIO varchar(255), FECHA_FIN varchar(255))";
+
+              con.query(sql, function (err, result) {
+                  if (err) throw err;
+                  console.log("Table "+nombre+" created");
+    
+                    readXlsxFile(''+direc).then((rows) => {
+                        // console.log(rows);
+    
+                        // var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA,NO_CERTIFICADO,NO_POLIZA, NOMBRE) VALUES ?";
+                        var sql1 = "INSERT INTO "+nombre+" (CORREO, REMESA,NO_CERTIFICADO, NOMBRE, FECHA_INICIO, FECHA_FIN) VALUES ?";
                         con.query(sql1, [rows], function(err) {
                             if (err) throw err;
                             console.log("Information inserted!");
@@ -259,7 +287,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (ID, CORREO, FECHA) VALUES ?";
@@ -282,7 +310,7 @@ function create(callback){
                   if (err) throw err;
                   console.log("Table "+nombre+" created");
     
-                    readXlsxFile('./bases/'+mes+'2020/'+mes+'-'+parte+'/'+producto+'/'+tipo+'/'+nombre+'.xlsx').then((rows) => {
+                    readXlsxFile(''+direc).then((rows) => {
                         // console.log(rows);
     
                         var sql1 = "INSERT INTO "+nombre+" (CORREO,NOMBRE_ASEG,INICIO_VIGENCIA, POLIZA_2) VALUES ?";
